@@ -9,7 +9,6 @@
 
 USTRUCT(BlueprintType)
 struct FAuraAttributeInfo {
-
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

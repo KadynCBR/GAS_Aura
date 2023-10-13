@@ -9,6 +9,7 @@
 
 class UAbilitySystemComponent;
 class UGameplayEffect;
+class UGameplayAbility;
 class UAttributeSet;
 
 UCLASS(Abstract)
@@ -46,4 +47,11 @@ protected:
 
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level);
 	void InitializeDefaultAttributes();
+
+	void AddCharacterAbilities();
+private:
+
+	UPROPERTY(EditAnywhere, Category= "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
 };

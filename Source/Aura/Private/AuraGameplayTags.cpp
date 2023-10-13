@@ -25,4 +25,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Attributes_Secondary_ManaRegeneration = AURATAGADD("Attributes.Secondary.ManaRegeneration", "Amount of mana regenerated every 1 second")
   GameplayTags.Attributes_Secondary_MaxMana = AURATAGADD("Attributes.Secondary.MaxMana", "Maximum mana obtainable")
   GameplayTags.Attributes_Secondary_MaxHealth = AURATAGADD("Attributes.Secondary.MaxHealth", "Maximum health obtainable")
+  // InputTags
+  GameplayTags.InputTag_LMB = AURATAGADD("InputTag.LMB","Input Tag for left mouse button");
+  GameplayTags.InputTag_RMB = AURATAGADD("InputTag.RMB", "Input Tag for right mouse button");
+  GameplayTags.InputTag_1 = AURATAGADD("InputTag.1", "Input Tag for 1 key");
+  GameplayTags.InputTag_2 = AURATAGADD("InputTag.2", "Input Tag for 2 key");
+  GameplayTags.InputTag_3 = AURATAGADD("InputTag.3", "Input Tag for 3 key");
+  GameplayTags.InputTag_4 = AURATAGADD("InputTag.4", "Input Tag for 4 key");
 }
