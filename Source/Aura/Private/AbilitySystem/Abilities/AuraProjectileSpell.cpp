@@ -11,15 +11,25 @@ void UAuraProjectileSpell::ActivateAbility(
     const FGameplayAbilityActivationInfo ActivationInfo,
     const FGameplayEventData* TriggerEventData) {
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-  const bool bIsServer = HasAuthority(&ActivationInfo);
+
+}
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation) {
+  const bool bIsServer =  GetAvatarActorFromActorInfo()->HasAuthority();
   if (!bIsServer) return;
   ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
   if (CombatInterface) {
     const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
     
+    // DESIGN DECISION: Just taking the difference in locations would make the projectile angled.
+    // We can set this currently to be parallel to the ground. 
+    // If later we wanted to give gravity and make a 'lobbed' spell, we can adjust here as well.
+    // Consider: making this an enum and giving options in editor.
+    FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
+    Rotation.Pitch = 0.f;
+
     FTransform SpawnTransform;
     SpawnTransform.SetLocation(SocketLocation);
-    // TODO: Set the projectile Rotation
+    SpawnTransform.SetRotation(Rotation.Quaternion());
 
     AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
       ProjectileClass, 
@@ -31,4 +41,4 @@ void UAuraProjectileSpell::ActivateAbility(
     // TODO: Give the projectile a gameplay effect spec for causing damage.
     Projectile->FinishSpawning(SpawnTransform);
   }
-} 
+}

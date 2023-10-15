@@ -36,6 +36,8 @@ void AAuraPlayerController::SetupInputComponent() {
   Super::SetupInputComponent();
   UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
   AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+  AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
+  AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
   AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
@@ -94,9 +96,8 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag) {
     if(GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
     return;
   }
-  if (bTargeting) {
-    if(GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
-  } else { // Else we are using the mouse click as a click to move and moving towards mouse click.
+  if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+  if (!bTargeting && !bShiftKeyDown) {
     APawn* ControlledPawn = GetPawn();
     if (FollowTime <= ShortPressThreshold && ControlledPawn) {
       // short press, perform autorun.
@@ -122,7 +123,8 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag) {
     return;
   }
   // if we're targeting something activate the ability.
-  if (bTargeting) {
+  // If we're targeting, or holding shift key, we want to assume ability activation.
+  if (bTargeting || bShiftKeyDown) {
     if(GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
   } else { // Else we are using the mouse click as a click to move and moving towards mouse click.
     FollowTime += GetWorld()->GetDeltaSeconds();
