@@ -38,6 +38,11 @@ public:
   FGameplayTag InputTag_2;
   FGameplayTag InputTag_3;
   FGameplayTag InputTag_4;
+  // meta
+  FGameplayTag Damage;
+
+  // StatusEffects
+  FGameplayTag Effects_HitReact;
 
 private:
   static FAuraGameplayTags GameplayTags;

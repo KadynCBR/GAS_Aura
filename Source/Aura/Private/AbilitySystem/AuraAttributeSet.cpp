@@ -3,10 +3,14 @@
 
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "Interaction/CombatInterface.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Player/AuraPlayerController.h"
 #include "GameFramework/Character.h"
 #include "AuraGameplayTags.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 UAuraAttributeSet::UAuraAttributeSet() {
   const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -75,6 +79,35 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
   if (Data.EvaluatedData.Attribute == GetManaAttribute()) {
     SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
   }
+  if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute()) {
+    const float LocalIncomingDamage = GetIncomingDamage();
+    SetIncomingDamage(0.f);
+    if (LocalIncomingDamage > 0.f) {
+      const float NewHealth = GetHealth() - LocalIncomingDamage;
+      SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+
+      // Handle Hit Stun
+      const bool bFatal = NewHealth <= 0.f;
+      if (bFatal) {
+        ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+        if (CombatInterface) {
+          CombatInterface->Die();
+        }
+      } else {
+        // Here we're activating an ability which has any tags in tagcontainer.
+        // Meaning on our GA_HitReact we have to give it the effects.hitreact tag
+        // in order for the below to work.
+        FGameplayTagContainer TagContainer;
+        TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+        // thing being affected
+        Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+      }
+
+      const bool isBlockedHit = UAuraAbilitySystemLibrary::IsBlockedHit(Props.EffectContextHandle);
+      const bool isCriticalHit = UAuraAbilitySystemLibrary::IsCriticalHit(Props.EffectContextHandle);
+      ShowFloatingText(Props, LocalIncomingDamage, isBlockedHit, isCriticalHit);
+    }
+  }
 }
 
 void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const {
@@ -100,6 +133,15 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
     Props.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
     Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
     Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
+  }
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool IsBlocked, bool IsCritical) {
+  // Floating Damage texts
+  if (Props.SourceCharacter != Props.TargetCharacter) {
+    if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter, 0))) {
+      PC->ShowDamageNumber(Damage, Props.TargetCharacter, IsBlocked, IsCritical);
+    }
   }
 }
 

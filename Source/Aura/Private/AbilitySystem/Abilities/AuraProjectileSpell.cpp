@@ -5,6 +5,7 @@
 #include "Actor/AuraProjectile.h"
 #include "Interaction/CombatInterface.h"
 #include "AbilitySystemComponent.h"
+#include "Aura/Public/AuraGameplayTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
 void UAuraProjectileSpell::ActivateAbility(
@@ -27,7 +28,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
     // If later we wanted to give gravity and make a 'lobbed' spell, we can adjust here as well.
     // Consider: making this an enum and giving options in editor.
     FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-    Rotation.Pitch = 0.f;
+    //Rotation.Pitch = 0.f;
 
     FTransform SpawnTransform;
     SpawnTransform.SetLocation(SocketLocation);
@@ -40,10 +41,20 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
       Cast<APawn>(GetOwningActorFromActorInfo()),
       ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
-    // TODO: Give the projectile a gameplay effect spec for causing damage.
     UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+    FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+    // dont need but just showing how it could be done.
+    EffectContextHandle.SetAbility(this);
+    EffectContextHandle.AddSourceObject(Projectile);
 
-    FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+    FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
+
+    FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+
+    const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+
+    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
+
     Projectile->DamageEffectSpecHandle = SpecHandle;
 
     Projectile->FinishSpawning(SpawnTransform);

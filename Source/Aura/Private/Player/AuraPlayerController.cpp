@@ -4,6 +4,8 @@
 #include "Interaction/EnemyInterface.h"
 #include "EnhancedInputSubSystems.h"
 #include "AuraGameplayTags.h"
+#include "GameFramework/Character.h"
+#include "UI/Widget/DamageTextComponent.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
@@ -45,6 +47,17 @@ void AAuraPlayerController::PlayerTick(float DeltaTime) {
   Super::PlayerTick(DeltaTime);
   CursorTrace();
   AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool IsBlocked, bool IsCritical) {
+  if (IsValid(TargetCharacter) && DamageTextComponentClass) {
+    UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+    DamageText->RegisterComponent();
+    // Attach and detatch so it positions correctly
+    DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+    DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+    DamageText->SetDamageText(DamageAmount, IsBlocked, IsCritical);
+  }
 }
 
 void AAuraPlayerController::AutoRun() {

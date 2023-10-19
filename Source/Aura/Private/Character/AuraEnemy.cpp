@@ -2,8 +2,11 @@
 
 
 #include "Character/AuraEnemy.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "AuraGameplayTags.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Aura/Aura.h"
@@ -32,9 +35,18 @@ void AAuraEnemy::UnHighlightActor() {
 
 int32 AAuraEnemy::GetPlayerLevel() { return Level; }
 
+void AAuraEnemy::Die() {
+  SetLifeSpan(LifeSpan);
+  Super::Die();
+}
+
 void AAuraEnemy::BeginPlay() {
   Super::BeginPlay();
+  GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
   InitAbilityActorInfo();
+  if (HasAuthority()) {
+    UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+  }
 
   if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject())) {
     AuraUserWidget->SetWidgetController(this);
@@ -50,16 +62,35 @@ void AAuraEnemy::BeginPlay() {
     [this](const FOnAttributeChangeData& Data){
       OnMaxHealthChanged.Broadcast(Data.NewValue);  
     });
+
+    // Bind to new tag events.. 
+    // Consider moving this to AuraBaseCharacter to accomodate playercharacters also affected by this.
+    AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effects_HitReact, EGameplayTagEventType::NewOrRemoved).AddUObject(
+      this,
+      &AAuraEnemy::HitReactTagChanged
+    );
+
     // Initial values
     OnHealthChanged.Broadcast(AuraAS->GetHealth());
     OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
   }
 }
 
+void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount) {
+  bHitReacting = NewCount > 0;
+  GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
+}
+
 void AAuraEnemy::InitAbilityActorInfo() {
-   AbilitySystemComponent->InitAbilityActorInfo(this, this);
-   Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
-   InitializeDefaultAttributes();
+  AbilitySystemComponent->InitAbilityActorInfo(this, this);
+  Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
+  if (HasAuthority()) {
+    InitializeDefaultAttributes();
+  }
+}
+
+void AAuraEnemy::InitializeDefaultAttributes() {
+  UAuraAbilitySystemLibrary::InitializeDefaultAttributes(this, CharacterClass, Level, AbilitySystemComponent);
 }
 
 

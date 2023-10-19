@@ -32,4 +32,10 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.InputTag_2 = AURATAGADD("InputTag.2", "Input Tag for 2 key");
   GameplayTags.InputTag_3 = AURATAGADD("InputTag.3", "Input Tag for 3 key");
   GameplayTags.InputTag_4 = AURATAGADD("InputTag.4", "Input Tag for 4 key");
+
+  // MetaTags
+  GameplayTags.Damage = AURATAGADD("Damage", "Incoming Damage");
+  
+  // Status Effects
+  GameplayTags.Effects_HitReact = AURATAGADD("Effects.HitReact", "Reacting to being hit")
 }
