@@ -7,6 +7,9 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AuraGameplayTags.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "AI/AuraAIController.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Aura/Aura.h"
@@ -19,6 +22,11 @@ AAuraEnemy::AAuraEnemy() {
   AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
   HealthBar = CreateDefaultSubobject<UWidgetComponent>("HealthBar");
   HealthBar->SetupAttachment(GetRootComponent());
+
+  bUseControllerRotationPitch = false;
+  bUseControllerRotationRoll = false;
+  bUseControllerRotationYaw = false;
+  GetCharacterMovement()->bUseControllerDesiredRotation = true;
 }
 
 void AAuraEnemy::HighlightActor() { 
@@ -33,6 +41,19 @@ void AAuraEnemy::UnHighlightActor() {
   Weapon->SetRenderCustomDepth(false);
 }
 
+void AAuraEnemy::PossessedBy(AController* NewController) {
+  Super::PossessedBy(NewController);
+  // AI is only done on the server, anything clients see is a result of replication.
+  if (!HasAuthority()) return;
+  AuraAIController = Cast<AAuraAIController>(NewController);
+  AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
+  AuraAIController->RunBehaviorTree(BehaviorTree);
+  AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
+  AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
+  // Consider changing this to accomodate more enemies or more ai stuff.
+  AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
+}
+
 int32 AAuraEnemy::GetPlayerLevel() { return Level; }
 
 void AAuraEnemy::Die() {
@@ -40,12 +61,16 @@ void AAuraEnemy::Die() {
   Super::Die();
 }
 
+void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget) { CombatTarget = InCombatTarget; }
+
+AActor* AAuraEnemy::GetCombatTarget_Implementation() const { return CombatTarget; }
+
 void AAuraEnemy::BeginPlay() {
   Super::BeginPlay();
   GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
   InitAbilityActorInfo();
   if (HasAuthority()) {
-    UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+    UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent, CharacterClass);
   }
 
   if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject())) {
@@ -79,6 +104,10 @@ void AAuraEnemy::BeginPlay() {
 void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount) {
   bHitReacting = NewCount > 0;
   GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
+  // Being called on server and client, but only server would have aicontroller and blackboard component.
+  if (AuraAIController && AuraAIController->GetBlackboardComponent()) {
+    AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+  }
 }
 
 void AAuraEnemy::InitAbilityActorInfo() {

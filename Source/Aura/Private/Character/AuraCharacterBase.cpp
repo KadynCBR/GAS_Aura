@@ -3,6 +3,7 @@
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "Aura/Aura.h"
 
@@ -48,6 +49,7 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation() {
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
+	bDead = true;
 }
 
 // Called when the game starts or when spawned
@@ -57,9 +59,29 @@ void AAuraCharacterBase::BeginPlay()
 	
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation() {
-	check(Weapon);
-	return Weapon->GetSocketLocation(WeaponTipSocketName);
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) {
+	// Currently only looking at wepaon, lefthand or righthand. To make more dynamic, 
+	// Could make a tmap mapping montagetags to names for socketlocations, making this more data driven.
+	// ie) montage.attack.horns -> horn socket location.a
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon)) {
+		return Weapon->GetSocketLocation(WeaponTipSocketName);
+	} 
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_RightHand)) {
+		 return GetMesh()->GetSocketLocation(RightHandSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_LeftHand)) {
+		 return GetMesh()->GetSocketLocation(LeftHandSocketName);
+	}
+	return FVector();
+}
+
+bool AAuraCharacterBase::IsDead_Implementation() const { return bDead; }
+
+AActor* AAuraCharacterBase::GetAvatar_Implementation() { return this; }
+
+TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation() {
+	return AttackMontages;
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo() {}

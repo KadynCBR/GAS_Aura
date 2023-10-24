@@ -29,8 +29,10 @@ UAuraAttributeSet::UAuraAttributeSet() {
   TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ManaRegeneration, GetManaRegenerationAttribute);
   TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxHealth, GetMaxHealthAttribute);
   TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxMana, GetMaxManaAttribute);
-
-
+  TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Fire, GetResistFireAttribute);
+  TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Lightning, GetResistLightningAttribute);
+  TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Arcane, GetResistArcaneAttribute);
+  TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Physical, GetResistPhysicalAttribute);
 }
 
 void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -52,6 +54,10 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
   DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CriticalHitResistance, COND_None, REPNOTIFY_Always);
   DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, HealthRegeneration, COND_None, REPNOTIFY_Always);
   DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ManaRegeneration, COND_None, REPNOTIFY_Always);
+  DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ResistFire, COND_None, REPNOTIFY_Always);
+  DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ResistLightning, COND_None, REPNOTIFY_Always);
+  DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ResistArcane, COND_None, REPNOTIFY_Always);
+  DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ResistPhysical, COND_None, REPNOTIFY_Always);
 }
 
 // Clamps for calculations / queries but doesn't actually clamp final values. 
@@ -139,9 +145,29 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool IsBlocked, bool IsCritical) {
   // Floating Damage texts
   if (Props.SourceCharacter != Props.TargetCharacter) {
-    if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter, 0))) {
-      PC->ShowDamageNumber(Damage, Props.TargetCharacter, IsBlocked, IsCritical);
+
+
+    // // Show to all Clients 
+    TArray<AActor*> PlayerActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerController::StaticClass(), PlayerActors);
+    for (AActor* Player_Actor : PlayerActors) {
+      AAuraPlayerController* PC = Cast<AAuraPlayerController>(Player_Actor);
+      AAuraPlayerController* SPC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller);
+      if (PC && SPC) {
+        PC->ShowDamageNumber(Damage, Props.TargetCharacter, IsBlocked, IsCritical, PC == SPC);
+      } 
+      // Show Enemy -> Player damage as a ghost value
+      //AAuraPlayerController* TPC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller);
+      //else if (PC && TPC) {
+      //  PC->ShowDamageNumber(Damage, Props.TargetCharacter, IsBlocked, IsCritical, PC == TPC); // <- This might need multiplayer testing.
+      //}
     }
+
+    // Show to only Instigator
+    /*if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller)) {
+      PC->ShowDamageNumber(Damage, Props.TargetCharacter, IsBlocked, IsCritical, true);
+    }*/
+
   }
 }
 
@@ -207,5 +233,21 @@ void UAuraAttributeSet::OnRep_HealthRegeneration(const FGameplayAttributeData& O
 
 void UAuraAttributeSet::OnRep_ManaRegeneration(const FGameplayAttributeData& OldManaRegeneration) const {
   GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ManaRegeneration, OldManaRegeneration);
+}
+
+void UAuraAttributeSet::OnRep_ResistFire(const FGameplayAttributeData& OldResistFire) const {
+  GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ResistFire, OldResistFire);
+}
+
+void UAuraAttributeSet::OnRep_ResistLightning(const FGameplayAttributeData& OldResistLightning) const {
+  GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ResistLightning, OldResistLightning);
+}
+
+void UAuraAttributeSet::OnRep_ResistArcane(const FGameplayAttributeData& OldResistArcane) const {
+  GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ResistArcane, OldResistArcane);
+}
+
+void UAuraAttributeSet::OnRep_ResistPhysical(const FGameplayAttributeData& OldResistPhysical) const {
+  GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet, ResistPhysical, OldResistPhysical);
 }
 

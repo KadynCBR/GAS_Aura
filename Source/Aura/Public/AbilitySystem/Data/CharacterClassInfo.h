@@ -22,7 +22,13 @@ struct FCharacterClassDefaultInfo {
 
 	UPROPERTY(EditDefaultsOnly, Category="Class Defaults")
 	TSubclassOf<UGameplayEffect> PrimaryAttributes;
+
+	UPROPERTY(EditDefaultsOnly, Category="Class Defaults")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 };
+
+
+// Decide what each character class is supposed to start with
 
 /**
  * 

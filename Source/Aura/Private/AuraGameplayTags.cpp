@@ -35,7 +35,34 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
 
   // MetaTags
   GameplayTags.Damage = AURATAGADD("Damage", "Incoming Damage");
+
+  // Damage types
+  GameplayTags.Damage_Fire = AURATAGADD("Damage.Fire", "Fire Damage Type");
+  GameplayTags.Damage_Lightning = AURATAGADD("Damage.Lightning", "Lightning Damage Type");
+  GameplayTags.Damage_Arcane = AURATAGADD("Damage.Arcane", "Arcane Damage Type");
+  GameplayTags.Damage_Physical = AURATAGADD("Damage.Physical", "Physical Damage Type");
+
+  // Resistances
+  GameplayTags.Attributes_Resistance_Fire = AURATAGADD("Attributes.Resistance.Fire", "Fire Damage Resistance");
+  GameplayTags.Attributes_Resistance_Lightning = AURATAGADD("Attributes.Resistance.Lightning", "Lightning Damage Resistance");
+  GameplayTags.Attributes_Resistance_Arcane = AURATAGADD("Attributes.Resistance.Arcane", "Arcane Damage Resistance");
+  GameplayTags.Attributes_Resistance_Physical = AURATAGADD("Attributes.Resistance.Physical", "Physical Damage Resistance");
+
+  // Ability Tags
+  GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Attack", "Attack Tag");
+
   
+  // Montage Tags
+  GameplayTags.Montage_Attack_Weapon = AURATAGADD("Montage.Attack.Weapon", "Montage weapon attack");
+  GameplayTags.Montage_Attack_RightHand = AURATAGADD("Montage.Attack.RightHand", "Montage RightHand attack");
+  GameplayTags.Montage_Attack_LeftHand = AURATAGADD("Montage.Attack.LeftHand", "Montage LeftHand attack");
+
+  // Map Damage Types to Resistance
+  GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);
+  GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning, GameplayTags.Attributes_Resistance_Lightning);
+  GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Arcane, GameplayTags.Attributes_Resistance_Arcane);
+  GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
+
   // Status Effects
   GameplayTags.Effects_HitReact = AURATAGADD("Effects.HitReact", "Reacting to being hit")
 }

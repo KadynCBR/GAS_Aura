@@ -17,13 +17,37 @@ struct AuraDamageStatics {
   DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitResistance);
   DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitDamage);
 
+  DECLARE_ATTRIBUTE_CAPTUREDEF(ResistFire);
+  DECLARE_ATTRIBUTE_CAPTUREDEF(ResistLightning);
+  DECLARE_ATTRIBUTE_CAPTUREDEF(ResistArcane);
+  DECLARE_ATTRIBUTE_CAPTUREDEF(ResistPhysical);
+
+  TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition> TagsToCaptureDefs;
+
   AuraDamageStatics() {
     DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);  
     DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);  
     DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, false);  
     DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitChance, Source, false);  
     DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitResistance, Target, false); 
-    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitDamage, Source, false); 
+    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitDamage, Source, false);
+
+    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ResistFire, Target, false); 
+    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ResistLightning, Target, false); 
+    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ResistArcane, Target, false); 
+    DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ResistPhysical, Target, false); 
+  
+    const FAuraGameplayTags Tags = FAuraGameplayTags::Get();
+    TagsToCaptureDefs.Add(Tags.Attributes_Secondary_Armor, ArmorDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Secondary_BlockChance, BlockChanceDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitChance, CriticalHitChanceDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitResistance, CriticalHitResistanceDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitDamage, CriticalHitDamageDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Fire, ResistFireDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Lightning, ResistLightningDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Arcane, ResistArcaneDef);
+    TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Physical, ResistPhysicalDef);
+
   }
 };
 
@@ -39,6 +63,11 @@ UExecCalc_Damage::UExecCalc_Damage() {
   RelevantAttributesToCapture.Add(DamageStatics().CriticalHitChanceDef);
   RelevantAttributesToCapture.Add(DamageStatics().CriticalHitResistanceDef);
   RelevantAttributesToCapture.Add(DamageStatics().CriticalHitDamageDef);
+
+  RelevantAttributesToCapture.Add(DamageStatics().ResistFireDef);
+  RelevantAttributesToCapture.Add(DamageStatics().ResistLightningDef);
+  RelevantAttributesToCapture.Add(DamageStatics().ResistArcaneDef);
+  RelevantAttributesToCapture.Add(DamageStatics().ResistPhysicalDef);
 
 }
 
@@ -60,7 +89,26 @@ void UExecCalc_Damage::Execute_Implementation(
 
   FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
   // Get damage set by caller magnitude
-  float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
+  float Damage = 0.f;
+
+  for (auto& Pair : FAuraGameplayTags::Get().DamageTypesToResistances) {
+    const FGameplayTag DamageType = Pair.Key;
+    const FGameplayTag ResistanceTag = Pair.Value;
+
+    checkf(AuraDamageStatics().TagsToCaptureDefs.Contains(ResistanceTag), TEXT("TagstoCaptureDefs doesn't contain Tag: [%s] in ExecCalc_Damage"), *ResistanceTag.ToString());
+    
+    const FGameplayEffectAttributeCaptureDefinition CaptureDef = AuraDamageStatics().TagsToCaptureDefs[ResistanceTag];
+
+    float DamageTypeValue = Spec.GetSetByCallerMagnitude(Pair.Key);
+
+    float Resistance = 0.f;
+    ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(CaptureDef, EvaluationParameters, Resistance);
+    Resistance = FMath::Clamp(Resistance, 0.f, 100.f);
+    
+    DamageTypeValue *= (100.f - Resistance) / 100.f;
+
+    Damage += DamageTypeValue;
+  }
   
   float BlockChance = 0.f;
   ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BlockChanceDef, EvaluationParameters, BlockChance);
