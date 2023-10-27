@@ -50,12 +50,21 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
 
   // Ability Tags
   GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Attack", "Attack Tag");
+  GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Summon", "Summoning Tag");
 
   
+  // CombatSocket Tags
+  GameplayTags.CombatSocket_Weapon = AURATAGADD("CombatSocket.Weapon", "CombatSocket: weapon");
+  GameplayTags.CombatSocket_RightHand = AURATAGADD("CombatSocket.RightHand", "CombatSocket: RightHand");
+  GameplayTags.CombatSocket_LeftHand = AURATAGADD("CombatSocket.LeftHand", "CombatSocket: LeftHand");
+  GameplayTags.CombatSocket_Tail = AURATAGADD("CombatSocket.Tail", "CombatSocket: Tail");
+
   // Montage Tags
-  GameplayTags.Montage_Attack_Weapon = AURATAGADD("Montage.Attack.Weapon", "Montage weapon attack");
-  GameplayTags.Montage_Attack_RightHand = AURATAGADD("Montage.Attack.RightHand", "Montage RightHand attack");
-  GameplayTags.Montage_Attack_LeftHand = AURATAGADD("Montage.Attack.LeftHand", "Montage LeftHand attack");
+  GameplayTags.Montage_Attack_1 = AURATAGADD("Montage.Attack.1", "Montage attack number 1");
+  GameplayTags.Montage_Attack_2 = AURATAGADD("Montage.Attack.2", "Montage attack number 2");
+  GameplayTags.Montage_Attack_3 = AURATAGADD("Montage.Attack.3", "Montage attack number 3");
+  GameplayTags.Montage_Attack_4 = AURATAGADD("Montage.Attack.4", "Montage attack number 4");
+  GameplayTags.Montage_Attack_5 = AURATAGADD("Montage.Attack.5", "Montage attack number 5"); 
 
   // Map Damage Types to Resistance
   GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);

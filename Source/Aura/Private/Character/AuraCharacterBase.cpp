@@ -4,6 +4,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 #include "Aura/Aura.h"
 
@@ -48,6 +49,7 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation() {
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 	Dissolve();
 	bDead = true;
 }
@@ -64,14 +66,17 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGamepl
 	// Could make a tmap mapping montagetags to names for socketlocations, making this more data driven.
 	// ie) montage.attack.horns -> horn socket location.a
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon)) {
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon)) {
 		return Weapon->GetSocketLocation(WeaponTipSocketName);
 	} 
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_RightHand)) {
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_RightHand)) {
 		 return GetMesh()->GetSocketLocation(RightHandSocketName);
 	}
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_LeftHand)) {
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_LeftHand)) {
 		 return GetMesh()->GetSocketLocation(LeftHandSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Tail)) {
+		 return GetMesh()->GetSocketLocation(TailSocketName);
 	}
 	return FVector();
 }
@@ -83,6 +88,25 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation() { return this; }
 TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation() {
 	return AttackMontages;
 }
+
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation() {
+	return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) {
+	for (FTaggedMontage TaggedMontage : AttackMontages) {
+		if (TaggedMontage.MontageTag == MontageTag) {
+			return TaggedMontage;
+		}
+	}
+	return FTaggedMontage();
+}
+
+int32 AAuraCharacterBase::GetMinionCount_Implementation() {
+        return MinionCount;
+}
+
+void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount) { MinionCount += Amount; }
 
 void AAuraCharacterBase::InitAbilityActorInfo() {}
 

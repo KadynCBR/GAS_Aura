@@ -73,6 +73,8 @@ void AAuraPlayerController::AutoRun() {
 
 // Camera relative movement
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue) {
+  // Stop auto running when we use WASD movement?
+  bAutoRunning = false;
   const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
   const FRotator Rotation = GetControlRotation();
   const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);

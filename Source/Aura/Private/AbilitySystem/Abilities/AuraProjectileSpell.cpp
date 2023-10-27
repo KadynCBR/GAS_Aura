@@ -16,21 +16,23 @@ void UAuraProjectileSpell::ActivateAbility(
   Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 }
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation) {
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch, float PitchOverride) {
   const bool bIsServer =  GetAvatarActorFromActorInfo()->HasAuthority();
   if (!bIsServer) return;
 
-  // What if you wanted to cast a spell from your hand???
-  // this could be done better.
-  //maybe we can overload this to spawn from different sockets?
-  const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().Montage_Attack_Weapon);
+  const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag);
     
   // DESIGN DECISION: Just taking the difference in locations would make the projectile angled.
   // We can set this currently to be parallel to the ground. 
   // If later we wanted to give gravity and make a 'lobbed' spell, we can adjust here as well.
   // Consider: making this an enum and giving options in editor.
   FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-  //Rotation.Pitch = 0.f;
+  if (bOverridePitch) {
+    Rotation.Pitch = PitchOverride;
+  }
+  if (!bOverridePitch && bDisablePitch) {
+    Rotation.Pitch = 0.f;
+  }
 
   FTransform SpawnTransform;
   SpawnTransform.SetLocation(SocketLocation);

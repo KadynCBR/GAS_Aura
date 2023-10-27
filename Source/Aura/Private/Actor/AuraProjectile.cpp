@@ -44,6 +44,7 @@ void AAuraProjectile::Destroyed() {
     UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
     UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
     if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+    bHit = true;
   }
   Super::Destroyed();
 }
@@ -55,12 +56,13 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
                                       const FHitResult& SweepResult) {
   // Check damageeffectspechandle is valid because this is only set on server, and not replicated. so if client is running into this, return as well.
   // if the otheractor is the same as the effectcauser(one who launched projectile) return early.
-  if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) return;
+  if (!DamageEffectSpecHandle.Data.IsValid() || DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) return;
   if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor)) return;
   if (!bHit) {
     UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
     UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
     if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+    bHit = true;
   }
 
   if (HasAuthority()) {

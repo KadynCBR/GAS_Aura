@@ -56,11 +56,21 @@ public:
 
   // Ability Tags
   FGameplayTag Abilities_Attack;
+  FGameplayTag Abilities_Summon;
 
-  // Montage Tags
-  FGameplayTag Montage_Attack_Weapon;
-  FGameplayTag Montage_Attack_RightHand;
-  FGameplayTag Montage_Attack_LeftHand;
+  // Combat Socket
+  FGameplayTag CombatSocket_Weapon;
+  FGameplayTag CombatSocket_RightHand;
+  FGameplayTag CombatSocket_LeftHand;
+  FGameplayTag CombatSocket_Tail; // maybe we can use this as body?
+
+  // Montage Tags (Used to tie specific montages and attack events.
+  // Should be treated as generic tags to be used, if enemies have more than N attacks, just add more ig
+  FGameplayTag Montage_Attack_1;
+  FGameplayTag Montage_Attack_2;
+  FGameplayTag Montage_Attack_3;
+  FGameplayTag Montage_Attack_4;
+  FGameplayTag Montage_Attack_5;
 
   TMap<FGameplayTag, FGameplayTag> DamageTypesToResistances;
 
