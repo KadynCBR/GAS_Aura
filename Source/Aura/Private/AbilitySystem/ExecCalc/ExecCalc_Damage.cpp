@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AuraGameplayTags.h"
+#include "Interaction/CombatInterface.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AuraAbilityTypes.h"
 
@@ -80,6 +81,16 @@ void UExecCalc_Damage::Execute_Implementation(
 
   AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
   AActor* TargetAvatar = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
+
+  // I dont actually use playerlevel here, but incase i do one day.
+  int32 SourcePlayerLevel = 1;
+  if (SourceAvatar->Implements<UCombatInterface>()) {
+    SourcePlayerLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
+  }
+  int32 TargetPlayerLevel = 1;
+  if (TargetAvatar->Implements<UCombatInterface>()) {
+    TargetPlayerLevel = ICombatInterface::Execute_GetPlayerLevel(TargetAvatar);
+  }
 
   const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 

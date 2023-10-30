@@ -41,6 +41,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Damage_Lightning = AURATAGADD("Damage.Lightning", "Lightning Damage Type");
   GameplayTags.Damage_Arcane = AURATAGADD("Damage.Arcane", "Arcane Damage Type");
   GameplayTags.Damage_Physical = AURATAGADD("Damage.Physical", "Physical Damage Type");
+  GameplayTags.Damage_Poison = AURATAGADD("Damage.Poison", "Poison Damage Type");
 
   // Resistances
   GameplayTags.Attributes_Resistance_Fire = AURATAGADD("Attributes.Resistance.Fire", "Fire Damage Resistance");
@@ -48,9 +49,15 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Attributes_Resistance_Arcane = AURATAGADD("Attributes.Resistance.Arcane", "Arcane Damage Resistance");
   GameplayTags.Attributes_Resistance_Physical = AURATAGADD("Attributes.Resistance.Physical", "Physical Damage Resistance");
 
+  // MetaAttributes
+  GameplayTags.Attributes_Meta_IncomingXP = AURATAGADD("Attributes.Meta.IncomingXP", "Incoming XP");
+
   // Ability Tags
   GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Attack", "Attack Tag");
-  GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Summon", "Summoning Tag");
+  GameplayTags.Abilities_Summon = AURATAGADD("Abilities.Summon", "Summoning Tag");
+  GameplayTags.Abilities_Fire_FireBolt = AURATAGADD("Abilities.Fire.FireBolt", "FireBolt");
+
+  GameplayTags.Cooldown_Fire_FireBolt = AURATAGADD("Cooldown.Fire.FireBolt", "FireBolt Cooldown");
 
   
   // CombatSocket Tags

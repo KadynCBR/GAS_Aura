@@ -70,8 +70,8 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContext
     ASC->GiveAbility(AbilitySpec);
   }
   for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->GetClassDefaultInfo(CharacterClass).StartupAbilities) {
-    if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(ASC->GetAvatarActor())) {
-      FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, CombatInterface->GetPlayerLevel());
+    if (ASC->GetAvatarActor()->Implements<UCombatInterface>()) {
+      FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, ICombatInterface::Execute_GetPlayerLevel(ASC->GetAvatarActor()));
       ASC->GiveAbility(AbilitySpec);
     }
   }
@@ -130,4 +130,12 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
   const bool bBothAreEnemies = FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
   const bool bFriends = bBothArePlayers || bBothAreEnemies;
   return !bFriends;
+}
+
+float UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel) {
+  AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
+  if (!AuraGameMode) return 0.0f;
+  UCharacterClassInfo* CharacterclassInfo = AuraGameMode->CharacterClassInfo;
+  const FCharacterClassDefaultInfo& ClassDefaultInfo = CharacterclassInfo->GetClassDefaultInfo(CharacterClass);
+  return ClassDefaultInfo.XPReward.GetValueAtLevel (CharacterLevel);
 }

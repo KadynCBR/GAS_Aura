@@ -54,7 +54,7 @@ void AAuraEnemy::PossessedBy(AController* NewController) {
   AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
 }
 
-int32 AAuraEnemy::GetPlayerLevel() { return Level; }
+int32 AAuraEnemy::GetPlayerLevel_Implementation() { return Level; }
 
 void AAuraEnemy::Die() {
   SetLifeSpan(LifeSpan);

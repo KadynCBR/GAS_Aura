@@ -3,7 +3,9 @@
 
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/LevelUpInfo.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "Player/AuraPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValues() {
   Super::BroadcastInitialValues();
@@ -29,15 +31,48 @@ void UOverlayWidgetController::BindCallbacksToDependencies() {
   AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
     uaa->GetMaxManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){OnMaxManaChanged.Broadcast(Data.NewValue);});
   
-  Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
-    [this](const FGameplayTagContainer& AssetTags) {
-       for (const FGameplayTag& Tag : AssetTags) {
-          FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
-          if (Tag.MatchesTag(MessageTag)) {
-            FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
-            MessageWidgetRowDelegate.Broadcast(*Row);
-          }
-       }
+  if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)) {
+    // If the abilities have been given already, just go ahead and initalize the widget abilities here.
+    // otherwise we're binding and once it _does_ happen, it will call that for us.
+    if (AuraASC->bStartupAbilitiesGiven) {
+      OnInitializeStartupAbilities(AuraASC);
+    } else {
+      AuraASC->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::OnInitializeStartupAbilities);
     }
-  );
+
+    AuraASC->EffectAssetTags.AddLambda(
+      [this](const FGameplayTagContainer& AssetTags) {
+         for (const FGameplayTag& Tag : AssetTags) {
+            FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+            if (Tag.MatchesTag(MessageTag)) {
+              FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+              MessageWidgetRowDelegate.Broadcast(*Row);
+            }
+         }
+      }
+    );
+  }
+
+  if (AAuraPlayerState* PS = Cast<AAuraPlayerState>(PlayerState)) {
+    PS->OnXPChangedDelegate.AddLambda([this, PS](float XP){ 
+      XPDelegate.Broadcast(PS->LevelUpInfo->GetCurrentXPPercent(XP)); 
+    });
+    PS->OnLevelChangedDelegate.AddLambda([this](float Level) { 
+      OnLevelChangedDelegate.Broadcast(Level);                                      
+    });
+  }
+}
+
+void UOverlayWidgetController::OnInitializeStartupAbilities(
+    UAuraAbilitySystemComponent* AuraAbilitySystemComponent) {
+  if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) return;
+  FForEachAbility BroadcastDelegate;
+  BroadcastDelegate.BindLambda([this, AuraAbilitySystemComponent](const FGameplayAbilitySpec& AbilitySpec) {
+    // Get the info, to broadcast to widgets
+    FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
+    // make sure info is filled up (input tag)
+    Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
+    AbilityInfoDelegate.Broadcast(Info);
+  });
+  AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
