@@ -48,6 +48,9 @@ public:
   FGameplayTag InputTag_2;
   FGameplayTag InputTag_3;
   FGameplayTag InputTag_4;
+  // not really inputs but used as these can be equipped to slots..
+  FGameplayTag InputTag_Passive_1;
+  FGameplayTag InputTag_Passive_2;
 
   // meta
   FGameplayTag Damage;
@@ -62,8 +65,24 @@ public:
   // Ability Tags
   FGameplayTag Abilities_Attack;
   FGameplayTag Abilities_Summon;
+
+  FGameplayTag Abilities_HitReact;
+
+  // Ability Status Tags
+  FGameplayTag Abilities_Status_Locked;
+  FGameplayTag Abilities_Status_Eligible;
+  FGameplayTag Abilities_Status_Unlocked;
+  FGameplayTag Abilities_Status_Equipped;
+
+  // Ability Types
+  FGameplayTag Abilities_Type_Offensive;
+  FGameplayTag Abilities_Type_Passive;
+  // ---- used to tag generics, hitreact etc. etc.
+  FGameplayTag Abilities_Type_None; 
+
   FGameplayTag Abilities_Fire_FireBolt;
   FGameplayTag Cooldown_Fire_FireBolt;
+  FGameplayTag Abilities_Lightning_Electrocute;
 
   // Combat Socket
   FGameplayTag CombatSocket_Weapon;

@@ -32,6 +32,8 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.InputTag_2 = AURATAGADD("InputTag.2", "Input Tag for 2 key");
   GameplayTags.InputTag_3 = AURATAGADD("InputTag.3", "Input Tag for 3 key");
   GameplayTags.InputTag_4 = AURATAGADD("InputTag.4", "Input Tag for 4 key");
+  GameplayTags.InputTag_Passive_1 = AURATAGADD("InputTag.Passive.1", "Fake Inputtag for Passive 1");
+  GameplayTags.InputTag_Passive_2 = AURATAGADD("InputTag.Passive.2", "Fake Inputtag for Passive 1");
 
   // MetaTags
   GameplayTags.Damage = AURATAGADD("Damage", "Incoming Damage");
@@ -55,9 +57,24 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   // Ability Tags
   GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Attack", "Attack Tag");
   GameplayTags.Abilities_Summon = AURATAGADD("Abilities.Summon", "Summoning Tag");
-  GameplayTags.Abilities_Fire_FireBolt = AURATAGADD("Abilities.Fire.FireBolt", "FireBolt");
 
+  GameplayTags.Abilities_HitReact = AURATAGADD("Abilities.HitReact", "Hit React Ability"); // I kinda like effects hitreact instead... 
+
+  // Ability Status Tags
+  GameplayTags.Abilities_Status_Locked = AURATAGADD("Abilities.Status.Locked", "Ability is locked");
+  GameplayTags.Abilities_Status_Eligible = AURATAGADD("Abilities.Status.Eligible", "Ability is eligible for unlock");
+  GameplayTags.Abilities_Status_Unlocked = AURATAGADD("Abilities.Status.Unlocked", "Ability is unlocked");
+  GameplayTags.Abilities_Status_Equipped = AURATAGADD("Abilities.Status.Equipped", "Ability is equipped");
+  // Ability Type Tags
+  GameplayTags.Abilities_Type_Offensive = AURATAGADD("Abilities.Type.Offensive", "Offensive Ability types");
+  GameplayTags.Abilities_Type_Passive = AURATAGADD("Abilities.Type.Passive", "Passive Ability types");
+  GameplayTags.Abilities_Type_None = AURATAGADD("Abilities.Type.None", "Generic ability types, hit react etc.");
+
+
+
+  GameplayTags.Abilities_Fire_FireBolt = AURATAGADD("Abilities.Fire.FireBolt", "FireBolt");
   GameplayTags.Cooldown_Fire_FireBolt = AURATAGADD("Cooldown.Fire.FireBolt", "FireBolt Cooldown");
+  GameplayTags.Abilities_Lightning_Electrocute = AURATAGADD("Abilities.Lightning.Electrocute", "Electrocute");
 
   
   // CombatSocket Tags

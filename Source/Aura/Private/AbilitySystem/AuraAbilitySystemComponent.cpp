@@ -3,6 +3,8 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Interaction/PlayerInterface.h"
 #include "Aura/AuraLogChannels.h"
@@ -19,11 +21,12 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
     FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
     if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability)) {
       AbilitySpec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
+      AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
       GiveAbility(AbilitySpec);
     } 
   }
   bStartupAbilitiesGiven = true;
-  AbilitiesGivenDelegate.Broadcast(this);
+  AbilitiesGivenDelegate.Broadcast();
 }
 
 void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities) {
@@ -90,12 +93,51 @@ FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbi
   return FGameplayTag();
 }
 
+FGameplayTag UAuraAbilitySystemComponent::GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec) {
+  for (FGameplayTag StatusTag : AbilitySpec.DynamicAbilityTags) {
+    if (StatusTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities.Status")))) {
+      return StatusTag;
+    }
+  }
+  return FGameplayTag();
+}
+
+FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromAbilityTag(const FGameplayTag& AbilityTag) {
+  // Lock ability list for this scope while we're iterating.
+  FScopedAbilityListLock ActiveScopeLock(*this);
+  for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities()) {
+    for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags) {
+      if (Tag.MatchesTag(AbilityTag)) {
+        return &AbilitySpec;
+      } 
+    }
+  }
+  return nullptr;
+}
+
 void UAuraAbilitySystemComponent::UpgradeAttribute(const FGameplayTag& AttributeTag) {
   // might be on client or on server. make sure we have points before sending rpc and stuff.
   if (GetAvatarActor()->Implements<UPlayerInterface>()) {
     if (IPlayerInterface::Execute_GetAttributePoints(GetAvatarActor()) > 0) {
       ServerUpgradeAttribute(AttributeTag);
     } 
+  }
+}
+
+// Giving abilities that we become eligible for based on level.
+void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level) {
+  UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+  for (const FAuraAbilityInfo& Info : AbilityInfo->AbilityInformation) {
+    if (Level < Info.LevelRequirement) continue;
+    if (!Info.AbilityTag.IsValid()) continue;
+    // if nullptr, we dont have it yet or it doesn't exist yet for us.
+    if (GetSpecFromAbilityTag(Info.AbilityTag) == nullptr) {
+      FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Info.Ability, 1);
+      AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Eligible);
+      GiveAbility(AbilitySpec);
+      // markabilityspecdirty forces replication immediately
+      MarkAbilitySpecDirty(AbilitySpec);
+    }
   }
 }
 
@@ -116,7 +158,7 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities() {
   // Only do this the first time. On client this should still be false until we set it here.
   if (!bStartupAbilitiesGiven) {
     bStartupAbilitiesGiven = true;
-    AbilitiesGivenDelegate.Broadcast(this);
+    AbilitiesGivenDelegate.Broadcast();
   }
 }
 

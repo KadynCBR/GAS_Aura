@@ -9,22 +9,16 @@
 #include "AuraGameplayTags.h"
 
 void UAttributeMenuWidgetController::BroadcastInitialValues() {
-  UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
-  check(AttributeInfo);
 
-  for (auto& Pair : AS->TagsToAttributes) {
+  for (auto& Pair : GetAuraAS()->TagsToAttributes) {
     BroadcastAttributeInfo(Pair.Key, Pair.Value());
   }
-  if (AAuraPlayerState* PS = Cast<AAuraPlayerState>(PlayerState)) {
-    AttributePointsChangedDelegate.Broadcast(PS->GetAttributePoints());
-    SpellPointsChangedDelegate.Broadcast(PS->GetSpellPoints());
-  }
+  AttributePointsChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoints());
+  SpellPointsChangedDelegate.Broadcast(GetAuraPS()->GetSpellPoints());
 }
 
 void UAttributeMenuWidgetController::BindCallbacksToDependencies() {
-  UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
-  check(AttributeInfo);
-  for (auto& Pair : AS->TagsToAttributes) {
+  for (auto& Pair : GetAuraAS()->TagsToAttributes) {
     AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value()).AddLambda(
       [this, Pair](const FOnAttributeChangeData& Data){
         BroadcastAttributeInfo(Pair.Key, Pair.Value());
@@ -32,19 +26,16 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies() {
     );
   }
 
-  if (AAuraPlayerState* PS = Cast<AAuraPlayerState>(PlayerState)) {
-    PS->OnAttributePointsChangedDelegate.AddLambda([this](int32 Points){
-      AttributePointsChangedDelegate.Broadcast(Points);
-    });
-    PS->OnSpellPointsChangedDelegate.AddLambda([this](int32 Points){
-      SpellPointsChangedDelegate.Broadcast(Points);
-    });
-  }
+  GetAuraPS()->OnAttributePointsChangedDelegate.AddLambda([this](int32 Points){
+    AttributePointsChangedDelegate.Broadcast(Points);
+  });
+  GetAuraPS()->OnSpellPointsChangedDelegate.AddLambda([this](int32 Points){
+    SpellPointsChangedDelegate.Broadcast(Points);
+  });
 }
 
 void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag) {
-  UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
-  AuraASC->UpgradeAttribute(AttributeTag);
+  GetAuraASC()->UpgradeAttribute(AttributeTag);
 }
 
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(
