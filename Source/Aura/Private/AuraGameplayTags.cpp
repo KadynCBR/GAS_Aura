@@ -55,6 +55,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Attributes_Meta_IncomingXP = AURATAGADD("Attributes.Meta.IncomingXP", "Incoming XP");
 
   // Ability Tags
+  GameplayTags.Abilities_None = AURATAGADD("Abilities.None", "No ability. Like nullptr but for abilitytags");
   GameplayTags.Abilities_Attack = AURATAGADD("Abilities.Attack", "Attack Tag");
   GameplayTags.Abilities_Summon = AURATAGADD("Abilities.Summon", "Summoning Tag");
 

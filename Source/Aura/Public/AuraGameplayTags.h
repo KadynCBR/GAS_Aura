@@ -63,6 +63,7 @@ public:
   FGameplayTag Damage_Poison;
 
   // Ability Tags
+  FGameplayTag Abilities_None;
   FGameplayTag Abilities_Attack;
   FGameplayTag Abilities_Summon;
 
@@ -75,7 +76,7 @@ public:
   FGameplayTag Abilities_Status_Equipped;
 
   // Ability Types
-  FGameplayTag Abilities_Type_Offensive;
+  FGameplayTag Abilities_Type_Offensive; // TODO: Change to Type_Active.
   FGameplayTag Abilities_Type_Passive;
   // ---- used to tag generics, hitreact etc. etc.
   FGameplayTag Abilities_Type_None; 
