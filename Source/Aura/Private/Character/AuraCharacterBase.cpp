@@ -12,6 +12,10 @@ AAuraCharacterBase::AAuraCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
+	BurnDebuffComponent->SetupAttachment(GetRootComponent());
+	BurnDebuffComponent->DebuffTag = FAuraGameplayTags::Get().Debuff_Burn;
+
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
@@ -52,6 +56,7 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation() {
 	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 	Dissolve();
 	bDead = true;
+	OnDeath.Broadcast(this);
 }
 
 // Called when the game starts or when spawned
@@ -103,14 +108,24 @@ FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FG
 }
 
 int32 AAuraCharacterBase::GetMinionCount_Implementation() {
-        return MinionCount;
+	return MinionCount;
 }
 
 void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount) {
-        MinionCount += Amount;
+	MinionCount += Amount;
 }
 
-ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation() { return CharacterClass; }
+ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation() {
+	return CharacterClass;
+}
+
+FOnASCRegistered& AAuraCharacterBase::GetOnASCRegisteredDelegate() {
+	return OnASCRegistered;
+}
+
+FOnDeath& AAuraCharacterBase::GetOnDeathDelegate() { 
+	return OnDeath; 
+}
 
 void AAuraCharacterBase::InitAbilityActorInfo() {}
 

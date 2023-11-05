@@ -33,8 +33,28 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 		if (bIsCriticalHit) {
 			RepBits |= 1 << 8;
 		}
+		if (bIsSuccessfulDebuff) {
+			RepBits |= 1 << 9;
+		}
+		if (DebuffDamage > 0) {
+			RepBits |= 1 << 10;
+		}
+		if (DebuffDuration > 0) {
+			RepBits |= 1 << 11;
+		}
+		if (DebuffFrequency > 0) {
+			RepBits |= 1 << 12;
+		}
+		if (DamageType.IsValid()) {
+			RepBits |= 1 << 13;
+		}
+		if (!DeathImpulse.IsZero()) {
+			RepBits |= 1 << 14;
+		}
 	}
-	Ar.SerializeBits(&RepBits, 9);
+
+	Ar.SerializeBits(&RepBits, 15);
+
 	if (RepBits & (1 << 0)) {
 		Ar << Instigator;
 	}
@@ -71,7 +91,29 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 	if (RepBits & (1 << 8)) {
 		Ar << bIsCriticalHit;
 	}
-
+	if (RepBits & (1 << 9)) {
+		Ar << bIsSuccessfulDebuff;
+	}
+	if (RepBits & (1 << 10)) {
+		Ar << DebuffDamage;
+	}
+	if (RepBits & (1 << 11)) {
+		Ar << DebuffDuration; 
+	}
+	if (RepBits & (1 << 12)) {
+		Ar << DebuffFrequency;
+	}
+	if (RepBits & (1 << 13)) {
+		if (Ar.IsLoading()) {
+			if (!DamageType.IsValid()) {
+				DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+			}
+		}
+		DamageType->NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 14)) {
+		DeathImpulse.NetSerialize(Ar, Map, bOutSuccess);
+	}
 	if (Ar.IsLoading()) {
 		AddInstigator(Instigator.Get(), EffectCauser.Get()); // Just to initialize InstigatorAbilitySystemComponent
 	}	

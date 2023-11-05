@@ -40,13 +40,15 @@ void AAuraProjectile::BeginPlay()
 }
 
 void AAuraProjectile::Destroyed() {
-  if (!bHit && !HasAuthority()) {
-    UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-    UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-    if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-    bHit = true;
-  }
+  if (!bHit && !HasAuthority()) { OnHit(); }
   Super::Destroyed();
+}
+
+void AAuraProjectile::OnHit() {
+  UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(),FRotator::ZeroRotator);
+  UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+  if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+  bHit = true;
 }
 
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -54,24 +56,18 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
                                       UPrimitiveComponent* OtherComp,
                                       int32 OtherBodyIndex, bool bFromSweep,
                                       const FHitResult& SweepResult) {
-  // Check damageeffectspechandle is valid because this is only set on server, and not replicated. so if client is running into this, return as well.
-  // if the otheractor is the same as the effectcauser(one who launched projectile) return early.
-  if (!DamageEffectSpecHandle.Data.IsValid() || DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) return;
-  if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor)) return;
-  if (!bHit) {
-    UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-    UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-    if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-    bHit = true;
-  }
-
+  AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+  if (SourceAvatarActor == OtherActor) return; // Dont hit yourself.
+  if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return;
+  if (!bHit) { OnHit(); }
   if (HasAuthority()) {
-
+    // Finish Damage Effect Params, we now know who the target is (our overlapactor) so now we set it.
     if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor)) {
-      TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+      const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+      DamageEffectParams.DeathImpulse = DeathImpulse;
+      DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
+      UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
     }
     Destroy();
-  } else {
-    bHit = true;  
-  }
+  } else { bHit = true; }
 }

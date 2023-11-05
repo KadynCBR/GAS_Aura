@@ -51,6 +51,18 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Attributes_Resistance_Arcane = AURATAGADD("Attributes.Resistance.Arcane", "Arcane Damage Resistance");
   GameplayTags.Attributes_Resistance_Physical = AURATAGADD("Attributes.Resistance.Physical", "Physical Damage Resistance");
 
+  // Debuffs
+  GameplayTags.Debuff_Burn = AURATAGADD("Debuff.Burn", "Burn Debuff, take fire damage over time");
+  GameplayTags.Debuff_Stun = AURATAGADD("Debuff.Stun", "Stun Debuff, Prevents action for a period of time");
+  GameplayTags.Debuff_Arcane = AURATAGADD("Debuff.Arcane", "Arcane Debuff, ?");
+  GameplayTags.Debuff_Physical = AURATAGADD("Debuff.Physical", "Physical Debuff, ?");
+
+  // Debuff helpers
+  GameplayTags.Debuff_Chance = AURATAGADD("Debuff.Chance", "Chance to apply a debuff");
+  GameplayTags.Debuff_Damage = AURATAGADD("Debuff.Damage", "Damage done on each tick of the debuff");
+  GameplayTags.Debuff_Duration = AURATAGADD("Debuff.Duration", "How long to tick for");
+  GameplayTags.Debuff_Frequency = AURATAGADD("Debuff.Frequency", "How often a tick happens");
+
   // MetaAttributes
   GameplayTags.Attributes_Meta_IncomingXP = AURATAGADD("Attributes.Meta.IncomingXP", "Incoming XP");
 
@@ -96,6 +108,12 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning, GameplayTags.Attributes_Resistance_Lightning);
   GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Arcane, GameplayTags.Attributes_Resistance_Arcane);
   GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
+
+  // Map Damage Types to Debuffs // iff applicable
+  GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Fire, GameplayTags.Debuff_Burn);
+  GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Lightning, GameplayTags.Debuff_Stun);
+  GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Arcane, GameplayTags.Debuff_Arcane);
+  GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Physical, GameplayTags.Debuff_Physical);
 
   // Status Effects
   GameplayTags.Effects_HitReact = AURATAGADD("Effects.HitReact", "Reacting to being hit")
