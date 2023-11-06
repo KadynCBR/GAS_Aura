@@ -36,21 +36,23 @@ UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation() {
 }
 
 // On server
-void AAuraCharacterBase::Die() {
+void AAuraCharacterBase::Die(const FVector& DeathImpulse) {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
-	MulticastHandleDeath();
+	MulticastHandleDeath(DeathImpulse);
 }
 
 // On all machines
-void AAuraCharacterBase::MulticastHandleDeath_Implementation() {
+void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse) {
 	Weapon->SetSimulatePhysics(true);
 	Weapon->SetEnableGravity(true);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	Weapon->AddImpulse(DeathImpulse * 0.1f, NAME_None, true);
 	
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetEnableGravity(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
@@ -118,6 +120,7 @@ void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount) {
 ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation() {
 	return CharacterClass;
 }
+
 
 FOnASCRegistered& AAuraCharacterBase::GetOnASCRegisteredDelegate() {
 	return OnASCRegistered;

@@ -106,10 +106,10 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props) {
     // Handle Hit Stun
     const bool bFatal = NewHealth <= 0.f;
     if (bFatal) {
-      // TODO: Use Death Impulse
       ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
       if (CombatInterface) {
-        CombatInterface->Die();
+        const FVector DeathImpulse = UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle);
+        CombatInterface->Die(DeathImpulse);
       }
       SendXPEvent(Props);
     } else {
@@ -118,7 +118,6 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props) {
       // in order for the below to work.
       FGameplayTagContainer TagContainer;
       TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-      // thing being affected
       Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
     }
     const bool isBlockedHit = UAuraAbilitySystemLibrary::IsBlockedHit(Props.EffectContextHandle);
