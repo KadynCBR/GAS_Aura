@@ -105,8 +105,8 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props) {
     SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
     // Handle Hit Stun
     const bool bFatal = NewHealth <= 0.f;
+    ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
     if (bFatal) {
-      ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
       if (CombatInterface) {
         const FVector DeathImpulse = UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle);
         CombatInterface->Die(DeathImpulse);
@@ -119,6 +119,10 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props) {
       FGameplayTagContainer TagContainer;
       TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
       Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+      if (CombatInterface) {
+        const FVector KnockbackVector = UAuraAbilitySystemLibrary::GetKnockbackVector(Props.EffectContextHandle);
+        if (!KnockbackVector.IsNearlyZero(1.f))ICombatInterface::Execute_ApplyKnockback(Props.TargetAvatarActor, KnockbackVector);
+      }
     }
     const bool isBlockedHit = UAuraAbilitySystemLibrary::IsBlockedHit(Props.EffectContextHandle);
     const bool isCriticalHit = UAuraAbilitySystemLibrary::IsCriticalHit(Props.EffectContextHandle);

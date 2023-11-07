@@ -85,6 +85,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	ECharacterClass GetCharacterClass();
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ApplyKnockback(const FVector& KnockbackMagnitude);
 
 	virtual FOnASCRegistered& GetOnASCRegisteredDelegate()=0;
 	virtual FOnDeath& GetOnDeathDelegate()=0;

@@ -27,6 +27,14 @@ UAuraDamageGameplayAbility::MakeDamageEffectParamsFromClassDefaults(AActor* Targ
   Params.DebuffDuration = DebuffDuration;
   Params.DebuffFrequency = DebuffFrequency;
   Params.DeathImpulseMagnitude = DeathImpulseMagnitude;
+  Params.KnockbackMagnitude = KnockbackMagnitude;
+  if (IsValid(TargetActor)) {
+    FRotator Rotation = (TargetActor->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).GetSafeNormal().Rotation();
+    Rotation.Pitch = 45.f; // pitch overrides for knockback
+    const FVector ToTarget = Rotation.Vector();
+    Params.DeathImpulse = ToTarget * DeathImpulseMagnitude;
+    Params.KnockbackVector = ToTarget * KnockbackMagnitude;
+  }
   return Params;
 }
 

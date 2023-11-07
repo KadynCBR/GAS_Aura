@@ -51,9 +51,12 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 		if (!DeathImpulse.IsZero()) {
 			RepBits |= 1 << 14;
 		}
+		if (!KnockbackVector.IsZero()) {
+			RepBits |= 1 << 15;
+		}
 	}
 
-	Ar.SerializeBits(&RepBits, 15);
+	Ar.SerializeBits(&RepBits, 16);
 
 	if (RepBits & (1 << 0)) {
 		Ar << Instigator;
@@ -113,6 +116,9 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 	}
 	if (RepBits & (1 << 14)) {
 		DeathImpulse.NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 15)) {
+		KnockbackVector.NetSerialize(Ar, Map, bOutSuccess);
 	}
 	if (Ar.IsLoading()) {
 		AddInstigator(Instigator.Get(), EffectCauser.Get()); // Just to initialize InstigatorAbilitySystemComponent

@@ -121,6 +121,9 @@ ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation() {
 	return CharacterClass;
 }
 
+void AAuraCharacterBase::ApplyKnockback_Implementation(const FVector& KnockbackMagnitude) {
+	LaunchCharacter(KnockbackMagnitude, true, true); // Only works when they're not moving???
+}
 
 FOnASCRegistered& AAuraCharacterBase::GetOnASCRegisteredDelegate() {
 	return OnASCRegistered;
