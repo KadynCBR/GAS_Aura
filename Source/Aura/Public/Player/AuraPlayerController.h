@@ -13,6 +13,7 @@ class UDamageTextComponent;
 class UAuraInputConfig;
 struct FInputActionValue;
 class IEnemyInterface;
+class UNiagaraSystem;
 class UAuraAbilitySystemComponent;
 
 /**
@@ -78,6 +79,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
 
 	void AutoRun();
 

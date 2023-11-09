@@ -116,5 +116,12 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Physical, GameplayTags.Debuff_Physical);
 
   // Status Effects
-  GameplayTags.Effects_HitReact = AURATAGADD("Effects.HitReact", "Reacting to being hit")
+  GameplayTags.Effects_HitReact = AURATAGADD("Effects.HitReact", "Reacting to being hit");
+
+
+  // Player Block Tags
+  GameplayTags.Player_Block_InputPressed = AURATAGADD("Player.Block.InputPressed", "Block input pressed callback");
+  GameplayTags.Player_Block_InputHeld = AURATAGADD("Player.Block.InputHeld", "Block input held callback");
+  GameplayTags.Player_Block_InputReleased = AURATAGADD("Player.Block.InputReleased", "Block input relesed callback");
+  GameplayTags.Player_Block_CursorTrace = AURATAGADD("Player.Block.CursorTrace", "Block tracing under cursor");
 }

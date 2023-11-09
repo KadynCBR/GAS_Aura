@@ -133,6 +133,10 @@ FOnDeath& AAuraCharacterBase::GetOnDeathDelegate() {
 	return OnDeath; 
 }
 
+USkeletalMeshComponent* AAuraCharacterBase::GetWeapon_Implementation() {
+	return Weapon; // what if no weapon?
+}
+
 void AAuraCharacterBase::InitAbilityActorInfo() {}
 
 void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) {

@@ -245,6 +245,30 @@ void UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(
   }
 }
 
+void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray<AActor*>& Actors, TArray<AActor*>& OutClosestTargets, const FVector& Origin) {
+  if(Actors.Num() <= MaxTargets) {
+    OutClosestTargets = Actors;
+    return;
+  }
+  TArray<AActor*> ActorsToCheck = Actors;
+  int32 NumTargetsFound = 0;
+  while (NumTargetsFound < MaxTargets) {
+    if (ActorsToCheck.Num() == 0) break;
+    double ClosestDistance = TNumericLimits<double>::Max();
+    AActor* ClosestActor;
+    for (AActor* PotentialTarget : ActorsToCheck) {
+      const double Distance = (PotentialTarget->GetActorLocation() - Origin).Length();
+      if (Distance < ClosestDistance) {
+        ClosestDistance = Distance;
+        ClosestActor = PotentialTarget;
+      }
+    }
+    ActorsToCheck.Remove(ClosestActor);
+    OutClosestTargets.AddUnique(ClosestActor);
+    ++NumTargetsFound;
+  }
+}
+
 FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(FDamageEffectParams DamageEffectParams) {
   FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
   FGameplayEffectContextHandle EffectContextHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeEffectContext();
@@ -267,6 +291,36 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
   const bool bBothAreEnemies = FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
   const bool bFriends = bBothArePlayers || bBothAreEnemies;
   return !bFriends;
+}
+
+TArray<FRotator> UAuraAbilitySystemLibrary::EvenlySpacedRotators(const FVector& Forward, const FVector& Axis, float Spread, int32 Num) {
+  TArray<FRotator> Rotators;
+  FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread/2.f, Axis);
+  if (Num > 1) {
+    const float DeltaSpread = Spread / (Num-1);
+    for (int32 i = 0; i < Num; i++) {
+      const FVector Direction = LeftOfSpread.RotateAngleAxis((DeltaSpread) * i, FVector::UpVector);
+      Rotators.Add(Direction.Rotation());
+    }
+  } else {
+    Rotators.Add(Forward.Rotation());
+  }
+  return Rotators;
+}
+
+TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& Forward, const FVector& Axis, float Spread, int32 Num) {
+  TArray<FVector> Vectors;
+  FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread/2.f, Axis);
+  if (Num > 1) {
+    const float DeltaSpread = Spread / (Num-1);
+    for (int32 i = 0; i < Num; i++) {
+      const FVector Direction = LeftOfSpread.RotateAngleAxis((DeltaSpread) * i, FVector::UpVector);
+      Vectors.Add(Direction);
+    }
+  } else {
+    Vectors.Add(Forward);
+  }
+  return Vectors;
 }
 
 float UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel) {
