@@ -57,4 +57,6 @@ private:
 
 	TObjectPtr<UAudioComponent> LoopingSoundComponent;
 
+	bool IsValidOverlap(AActor* OtherActor);
+
 };

@@ -35,6 +35,7 @@ void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
   SetLifeSpan(LifeSpan);
+  SetReplicateMovement(true);
   Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
   LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
 }
@@ -63,9 +64,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
                                       UPrimitiveComponent* OtherComp,
                                       int32 OtherBodyIndex, bool bFromSweep,
                                       const FHitResult& SweepResult) {
-  AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
-  if (SourceAvatarActor == OtherActor) return; // Dont hit yourself.
-  if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return;
+  if (!IsValidOverlap(OtherActor)) return;
   if (!bHit) { OnHit(); }
   if (HasAuthority()) {
     // Finish Damage Effect Params, we now know who the target is (our overlapactor) so now we set it.
@@ -82,4 +81,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent,
     }
     Destroy();
   } else { bHit = true; }
+}
+
+bool AAuraProjectile::IsValidOverlap(AActor* OtherActor) {
+  if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return false;
+  AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+  if (SourceAvatarActor == OtherActor) return false;
+  if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return false;
+  return true;
 }

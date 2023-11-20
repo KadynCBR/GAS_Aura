@@ -113,12 +113,14 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props) {
       }
       SendXPEvent(Props);
     } else {
-      // Here we're activating an ability which has any tags in tagcontainer.
-      // Meaning on our GA_HitReact we have to give it the effects.hitreact tag
-      // in order for the below to work.
-      FGameplayTagContainer TagContainer;
-      TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-      Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+      if (Props.TargetCharacter->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsBeingShocked(Props.TargetCharacter)) {
+        // Here we're activating an ability which has any tags in tagcontainer.
+        // Meaning on our GA_HitReact we have to give it the effects.hitreact tag
+        // in order for the below to work.
+        FGameplayTagContainer TagContainer;
+        TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+        Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+      }
       if (CombatInterface) {
         const FVector KnockbackVector = UAuraAbilitySystemLibrary::GetKnockbackVector(Props.EffectContextHandle);
         if (!KnockbackVector.IsNearlyZero(1.f))ICombatInterface::Execute_ApplyKnockback(Props.TargetAvatarActor, KnockbackVector);
@@ -174,8 +176,19 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props) {
   Effect->Period = DebuffFrequency;
   Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
 
+
   // Set the tags that the Targets will recieve !
-  Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.DamageTypesToDebuffs[DamageType]);
+  const FGameplayTag DebuffTag = GameplayTags.DamageTypesToDebuffs[DamageType];
+  Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
+
+    // If we're stunned, add a bunch of block tags. 
+    // TODO: Consider making a single tag to encompass this functionality?????
+  if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun)) {
+    Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputHeld);
+    Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_CursorTrace);
+    Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputPressed);
+    Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputReleased);
+  }
   Effect->StackingType = EGameplayEffectStackingType::AggregateBySource;
   Effect->StackLimitCount = 1;
   

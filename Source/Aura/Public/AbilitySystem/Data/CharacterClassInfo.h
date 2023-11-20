@@ -17,6 +17,15 @@ enum class ECharacterClass : uint8 {
 	Ranger
 };
 
+UENUM(BlueprintType)
+enum EPlayerCharacterClass {
+	Aura,
+	Natalia,
+	Victoria,
+	Jiao,
+	Ryker
+};
+
 USTRUCT(BlueprintType)
 struct FCharacterClassDefaultInfo {
 	GENERATED_BODY()

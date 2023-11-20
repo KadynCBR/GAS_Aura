@@ -83,7 +83,6 @@ void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, co
       Cast<APawn>(GetOwningActorFromActorInfo()),
       ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     Projectile->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
-    Projectile->FinishSpawning(SpawnTransform);
     if (HomingTarget && HomingTarget->Implements<UCombatInterface>()) {
       Projectile->ProjectileMovement->HomingTargetComponent = HomingTarget->GetRootComponent();
     } else {
@@ -94,5 +93,6 @@ void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, co
     }
     Projectile->ProjectileMovement->HomingAccelerationMagnitude = FMath::FRandRange(HomingAccelMin, HomingAccelMax);
     Projectile->ProjectileMovement->bIsHomingProjectile = bLaunchHomingProjectiles;
+		Projectile->FinishSpawning(SpawnTransform);
   }
 }
