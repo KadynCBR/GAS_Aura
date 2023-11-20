@@ -96,9 +96,17 @@ public:
   // ---- used to tag generics, hitreact etc. etc.
   FGameplayTag Abilities_Type_None; 
 
+  // Active Abilities
   FGameplayTag Abilities_Fire_FireBolt;
   FGameplayTag Cooldown_Fire_FireBolt;
   FGameplayTag Abilities_Lightning_Electrocute;
+
+  // Passive Abilities
+  FGameplayTag Abilities_Passive_HaloOfProtection;
+  FGameplayTag Abilities_Passive_LifeSiphon;
+  FGameplayTag Abilities_Passive_ManaSiphon;
+
+
 
   // Combat Socket
   FGameplayTag CombatSocket_Weapon;

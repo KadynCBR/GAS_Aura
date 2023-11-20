@@ -84,11 +84,15 @@ void FAuraGameplayTags::InitializeNativeGameplayTags() {
   GameplayTags.Abilities_Type_None = AURATAGADD("Abilities.Type.None", "Generic ability types, hit react etc.");
 
 
-
+  // Active Ability Tags
   GameplayTags.Abilities_Fire_FireBolt = AURATAGADD("Abilities.Fire.FireBolt", "FireBolt");
   GameplayTags.Cooldown_Fire_FireBolt = AURATAGADD("Cooldown.Fire.FireBolt", "FireBolt Cooldown");
   GameplayTags.Abilities_Lightning_Electrocute = AURATAGADD("Abilities.Lightning.Electrocute", "Electrocute");
 
+  // Passive Ability Tags
+  GameplayTags.Abilities_Passive_HaloOfProtection = AURATAGADD("Abilities.Passive.HaloOfProtection", "Halo Of Protection");
+  GameplayTags.Abilities_Passive_LifeSiphon = AURATAGADD("Abilities.Passive.LifeSiphon", "Life Siphon");
+  GameplayTags.Abilities_Passive_ManaSiphon = AURATAGADD("Abilities.Passive.ManaSiphon", "Mana Siphon");
   
   // CombatSocket Tags
   GameplayTags.CombatSocket_Weapon = AURATAGADD("CombatSocket.Weapon", "CombatSocket: weapon");
